@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { Reveal, Stagger, StaggerItem, HoverLift } from '@/components/Motion';
 import PrayerFlags from '@/components/decor/PrayerFlags';
 import Diya from '@/components/decor/Diya';
+import Stupa from '@/components/decor/Stupa';
 
 function DestinationCard({ d }) {
   const img = d.image || '/assets/images/phewa-lake.jpg';
@@ -130,7 +131,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section cta-section">
+        <Stupa className="cta-stupa" />
         <div className="container">
           <Reveal><div className="cta-band">
             <Diya size={34} className="diya-inline" />
