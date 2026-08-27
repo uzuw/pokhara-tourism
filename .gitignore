@@ -1,0 +1,8 @@
+node_modules/
+.env
+server/data/tourism.db
+server/data/tourism.db-wal
+server/data/tourism.db-shm
+*.log
+.DS_Store
+public/assets/images/*.jpg
