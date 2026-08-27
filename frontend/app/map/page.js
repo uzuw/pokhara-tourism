@@ -2,7 +2,8 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { api, toast } from '@/lib/auth';
+import { api } from '@/lib/api';
+import { toast } from '@/lib/auth';
 
 function makeIcon(L, active) {
   return L.divIcon({
