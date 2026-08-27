@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import DestinationCard from '@/components/DestinationCard';
+import { Reveal, Stagger, StaggerItem, HoverLift } from '@/components/Motion';
 
 function DestinationsInner() {
   const params = useSearchParams();
@@ -31,24 +32,28 @@ function DestinationsInner() {
   return (
     <section className="section" style={{ paddingTop: 48 }}>
       <div className="container">
-        <div className="section-head" style={{ textAlign: 'left', margin: '0 0 26px', maxWidth: 'none' }}>
+        <Reveal><div className="section-head" style={{ textAlign: 'left', margin: '0 0 26px', maxWidth: 'none' }}>
           <span className="eyebrow">🌊 All spots</span>
           <h2 style={{ margin: '8px 0' }}>Where to go in Pokhara</h2>
           <p>Filter by category or search. Click any card to see the map and reviews.</p>
-        </div>
+        </div></Reveal>
 
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginBottom: 26 }}>
+        <Reveal delay={0.08}><div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginBottom: 26 }}>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search lakes, temples, caves…" style={{ flex: 1, minWidth: 220, padding: '12px 16px', borderRadius: 999, border: '1.5px solid var(--line)', font: 'inherit', background: '#fff' }} />
           <select value={cat} onChange={(e) => setCat(e.target.value)} style={{ padding: '12px 16px', borderRadius: 999, border: '1.5px solid var(--line)', font: 'inherit', background: '#fff' }}>
             <option value="">All categories</option>
             {cats.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-        </div>
+        </div></Reveal>
 
         {items === null ? (
           <div className="grid cards">{[0, 1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: 330 }} />)}</div>
         ) : items.length ? (
-          <div className="grid cards">{items.map((d) => <DestinationCard key={d.id} d={d} />)}</div>
+          <Stagger className="grid cards">
+            {items.map((d) => (
+              <StaggerItem key={d.id}><HoverLift><DestinationCard d={d} /></HoverLift></StaggerItem>
+            ))}
+          </Stagger>
         ) : (
           <p className="muted center" style={{ marginTop: 30 }}>No destinations match your search.</p>
         )}

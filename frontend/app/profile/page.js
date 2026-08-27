@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, getToken, getStoredUser, setStoredUser } from '@/lib/api';
-import { useAuth, toast } from '@/lib/auth';
+import { api, getToken, toast, getStoredUser, setStoredUser } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { Reveal, Stagger, StaggerItem } from '@/components/Motion';
 
 function timeAgo(iso) {
   const d = new Date((iso || '').replace(' ', 'T') + 'Z');
@@ -68,8 +69,8 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 24, alignItems: 'start' }}>
-          <div className="rating-panel">
+        <Stagger className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 24, alignItems: 'start' }}>
+          <StaggerItem><div className="rating-panel">
             <h3 style={{ marginTop: 0, color: 'var(--lake-800)' }}>⭐ Your ratings</h3>
             {myRatings.length ? myRatings.map((r) => (
               <div key={r.slug} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
@@ -77,8 +78,8 @@ export default function ProfilePage() {
                 <div style={{ flex: 1 }}><a href={`/destination/${r.slug}`} style={{ fontWeight: 600, color: 'var(--lake-800)' }}>{r.name}</a><div style={{ color: '#ffb400', fontSize: '.95rem' }}>{'★'.repeat(r.score)}{'☆'.repeat(5 - r.score)}</div></div>
               </div>
             )) : <p className="muted">You haven&apos;t rated anything yet.</p>}
-          </div>
-          <div className="comments-panel">
+          </div></StaggerItem>
+          <StaggerItem><div className="comments-panel">
             <h3 style={{ marginTop: 0, color: 'var(--lake-800)' }}>💬 Your reviews</h3>
             {myComments.length ? myComments.map((c) => (
               <div className="comment" key={c.id}>
@@ -86,8 +87,8 @@ export default function ProfilePage() {
                 <div className="comment-body">{c.text}</div>
               </div>
             )) : <p className="muted">No reviews yet.</p>}
-          </div>
-        </div>
+          </div></StaggerItem>
+        </Stagger>
       </div>
     </section>
   );

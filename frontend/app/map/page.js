@@ -59,6 +59,11 @@ function MapInner() {
       if (d) { m.flyTo([d.lat, d.lng], 15, { duration: 0.8 }); markersRef.current[d.id].openPopup(); }
     }
     setTimeout(() => m.invalidateSize(), 200);
+    // keep the map sized correctly when the sidebar stacks / window resizes
+    const ro = new ResizeObserver(() => m.invalidateSize());
+    ro.observe(mapEl.current);
+    window.addEventListener('resize', () => m.invalidateSize());
+    return () => ro.disconnect();
   }, [dests, params]);
 
   function clearRoute() {

@@ -58,6 +58,9 @@ export default function DestinationDetail() {
         L.marker([dest.lat, dest.lng], { icon: makeIcon(L) }).addTo(m).bindPopup(`<b>${dest.name}</b>`);
         mapRef.current = m;
         setTimeout(() => m.invalidateSize(), 200);
+        const ro = new ResizeObserver(() => m.invalidateSize());
+        ro.observe(mapEl.current);
+        window.addEventListener('resize', () => m.invalidateSize());
       });
       return;
     }
@@ -66,6 +69,9 @@ export default function DestinationDetail() {
     LRef.current.marker([dest.lat, dest.lng], { icon: makeIcon(LRef.current) }).addTo(m).bindPopup(`<b>${dest.name}</b>`);
     mapRef.current = m;
     setTimeout(() => m.invalidateSize(), 200);
+    const ro = new ResizeObserver(() => m.invalidateSize());
+    ro.observe(mapEl.current);
+    window.addEventListener('resize', () => m.invalidateSize());
   }, [dest]);
 
   async function submitRating(score) {
