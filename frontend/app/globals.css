@@ -41,8 +41,8 @@ button { font-family: inherit; cursor: pointer; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(14, 116, 144, .45); }
 .btn-amber { background: linear-gradient(120deg, var(--amber-500), #ff5e3a); color: #fff; box-shadow: 0 10px 26px rgba(255, 122, 69, .35); }
 .btn-amber:hover { transform: translateY(-2px); }
-.btn-ghost { background: rgba(255, 255, 255, .14); color: #fff; border: 1px solid rgba(255, 255, 255, .35); backdrop-filter: blur(6px); }
-.btn-ghost:hover { background: rgba(255, 255, 255, .24); }
+.btn-ghost { background: rgba(255, 255, 255, .16); color: #fff; border: 1.5px solid rgba(255, 255, 255, .55); backdrop-filter: blur(8px); box-shadow: 0 4px 14px rgba(0, 0, 0, .2); }
+.btn-ghost:hover { background: rgba(255, 255, 255, .28); border-color: #fff; }
 .btn-outline { background: rgba(255, 255, 255, .6); border: 1.5px solid rgba(14, 116, 144, .35); color: var(--lake-700); backdrop-filter: blur(8px); }
 .btn-outline:hover { background: var(--lake-600); color: #fff; }
 .btn-block { width: 100%; justify-content: center; }
@@ -236,7 +236,7 @@ button { font-family: inherit; cursor: pointer; }
 .prayer-flags { width: 100%; height: auto; display: block; filter: drop-shadow(0 6px 10px rgba(12, 28, 43, .08)); }
 .flag-leaf { transform-origin: top center; animation: flagwave 3.4s ease-in-out infinite; }
 @keyframes flagwave { 0%, 100% { transform: skewX(0deg) scaleY(1); } 50% { transform: skewX(6deg) scaleY(.96); } }
-.flags-banner { position: relative; z-index: 2; padding: 4px 0 0; line-height: 0; }
+.flags-banner { position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 4px 0 0; line-height: 0; pointer-events: none; }
 
 /* stupa / mandala decor placement */
 .decor-stupa-footer { position: relative; }
@@ -309,7 +309,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
   .hero { min-height: auto; padding-top: 18px; padding-bottom: 40px; }
   .flags-banner { max-height: 70px; overflow: hidden; }
   .flags-banner svg { height: 90px; }
-  .hero-content { padding: 26px 0; max-width: 100%; }
+  .hero-content { padding: 26px 0 26px; max-width: 100%; }
   .hero p.lead { font-size: 1rem; line-height: 1.55; }
   .hero-cta { margin-top: 22px; gap: 12px; }
   .hero h1 { font-size: clamp(2.2rem, 7.5vw, 3rem); margin: 14px 0 12px; }
@@ -327,8 +327,8 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
   .hero p.lead { font-size: .92rem; line-height: 1.5; margin: 0; }
   .hero-cta { margin-top: 18px; gap: 10px; flex-wrap: wrap; }
   .hero-cta .btn { flex: 1 1 140px; justify-content: center; }
-  .hero-stats { margin-top: 20px; gap: 12px; flex-wrap: nowrap; justify-content: space-between; }
-  .hero-stats .stat { min-width: 0; }
+  .hero-stats { margin-top: 20px; gap: 10px; flex-wrap: nowrap; justify-content: space-between; }
+  .hero-stats .stat { min-width: 0; flex: 1; text-align: center; }
   .hero-stats .stat .n { font-size: 1.5rem; }
   .hero-stats .stat .l { font-size: .72rem; }
   .profile-head { padding: 20px; }
