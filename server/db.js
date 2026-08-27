@@ -6,7 +6,12 @@ const fs = require('fs');
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-const DB_PATH = path.join(DATA_DIR, 'tourism.db');
+// Allow an isolated test database via env var so Jest never touches the
+// real tourism.db (and never the running dev server's DB). The file is
+// created on demand inside DATA_DIR.
+const DB_PATH = process.env.TOURISM_TEST_DB
+  ? path.join(DATA_DIR, process.env.TOURISM_TEST_DB)
+  : path.join(DATA_DIR, 'tourism.db');
 const db = new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode = WAL;');
 db.exec('PRAGMA foreign_keys = ON;');
