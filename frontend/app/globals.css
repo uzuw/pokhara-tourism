@@ -304,13 +304,33 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
   .map-side { max-height: none; }
   #fullMap { height: 60vh; }
   .hero-stats { gap: 22px; }
+
+  /* make the hero actually fit the viewport on phones (no below-fold cutoff) */
+  .hero { min-height: auto; padding-top: 18px; padding-bottom: 40px; }
+  .flags-banner { max-height: 70px; overflow: hidden; }
+  .flags-banner svg { height: 90px; }
+  .hero-content { padding: 26px 0; max-width: 100%; }
+  .hero p.lead { font-size: 1rem; line-height: 1.55; }
+  .hero-cta { margin-top: 22px; gap: 12px; }
+  .hero h1 { font-size: clamp(2.2rem, 7.5vw, 3rem); margin: 14px 0 12px; }
+  .hero-stats { margin-top: 30px; gap: 18px 26px; }
   .section { padding: 56px 0; }
 }
 @media (max-width: 560px) {
   .container { width: min(100% - 28px, var(--maxw)); }
   .footer-grid { grid-template-columns: 1fr; }
-  .hero h1 { font-size: clamp(2.2rem, 9vw, 3rem); }
-  .hero-content { padding: 36px 0; }
+  .hero { padding-top: 14px; padding-bottom: 28px; }
+  .flags-banner { max-height: 48px; }
+  .flags-banner svg { height: 62px; }
+  .hero h1 { font-size: clamp(2rem, 8.5vw, 2.7rem); margin: 12px 0 10px; }
+  .hero-content { padding: 16px 0; }
+  .hero p.lead { font-size: .92rem; line-height: 1.5; margin: 0; }
+  .hero-cta { margin-top: 18px; gap: 10px; flex-wrap: wrap; }
+  .hero-cta .btn { flex: 1 1 140px; justify-content: center; }
+  .hero-stats { margin-top: 20px; gap: 12px; flex-wrap: nowrap; justify-content: space-between; }
+  .hero-stats .stat { min-width: 0; }
+  .hero-stats .stat .n { font-size: 1.5rem; }
+  .hero-stats .stat .l { font-size: .72rem; }
   .profile-head { padding: 20px; }
   .route-box { flex-direction: column; align-items: stretch; }
   .route-box .btn { width: 100%; }
