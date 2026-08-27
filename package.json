@@ -1,12 +1,11 @@
 {
   "name": "pokhara-tourism",
   "version": "1.0.0",
-  "description": "Pokhara tourism web app — destinations, OpenStreetMap maps, auth, ratings & comments",
-  "type": "commonjs",
-  "main": "server/index.js",
+  "description": "Pokhara tourism web app",
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
+    "dev:all": "concurrently -n backend,frontend -c blue,teal \"npm run dev\" \"npm --prefix frontend run dev\"",
     "seed": "node server/seed.js",
     "test": "cross-env NODE_ENV=test jest --runInBand server/tests",
     "test:responsive": "node tests/responsive.mjs"
@@ -19,6 +18,7 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "concurrently": "^9.2.4",
     "cross-env": "^7.0.3",
     "jest": "^29.7.0",
     "playwright": "^1.62.1",
