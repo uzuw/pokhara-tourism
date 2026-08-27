@@ -11,8 +11,14 @@ const data = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', 'server', 'data', 'destinations.json'), 'utf8')
 );
 
-const UA = 'PokharaTourismApp/1.0 (educational demo; contact: dev@example.com)';
+// Plain UA — Wikimedia's upload host robot-blocks UAs that contain a
+// parenthetical contact string (URL/email), so keep it simple.
+const UA = 'PokharaTourismApp/1.0';
 const API = 'https://commons.wikimedia.org/w/api.php';
+
+// Wikimedia upload servers reject thumb URLs that keep the API's
+// ?utm_source=... tracking params (robot-policy block). Strip them.
+function cleanUrl(u) { return (u || '').split('?')[0]; }
 
 // Curated fallback file titles (without File: prefix) known to exist on Commons.
 const FALLBACK = {
@@ -34,11 +40,18 @@ const FALLBACK = {
 
 function apiGet(params) {
   const url = API + '?format=json&' + new URLSearchParams(params).toString();
-  const res = execSync(
-    `curl -s --max-time 30 -A '${UA}' '${url}'`,
-    { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }
-  );
-  return JSON.parse(res);
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const res = execSync(
+      `curl -s --max-time 30 -A '${UA}' '${url}'`,
+      { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }
+    );
+    if (res.startsWith('{')) return JSON.parse(res);
+    // "too many requests" or other non-JSON -> back off and retry
+    const wait = attempt * 2500;
+    console.log(`   (rate-limited, retry ${attempt} in ${wait}ms)`);
+    execSync(`sleep ${wait / 1000}`);
+  }
+  return { query: { pages: {} } };
 }
 
 function searchImages(term) {
@@ -58,13 +71,16 @@ function searchImages(term) {
     const ii = p.imageinfo && p.imageinfo[0];
     if (!ii) continue;
     if (!/^image\/(jpeg|jpg|png)$/.test(ii.mime || '')) continue;
-    out.push({ title: p.title, url: ii.thumburl || ii.url });
+    out.push({ title: p.title, url: cleanUrl(ii.thumburl || ii.url) });
   }
   return out;
 }
 
 function download(url, dest) {
   try {
+    // IMPORTANT: do NOT send a Referer — Wikimedia's upload host blocks
+    // requests carrying one with a robot-policy stub. A plain UA + clean
+    // (query-stripped) thumb URL works.
     execSync(`curl -sL --max-time 60 -A '${UA}' '${url}' -o '${dest}'`, { encoding: 'utf8' });
     return fs.existsSync(dest) && fs.statSync(dest).size > 6000;
   } catch (e) {
@@ -85,7 +101,8 @@ function looksLikeImage(dest) {
   const results = [];
   for (const d of data) {
     const dest = path.join(IMG_DIR, d.slug + '.jpg');
-    let ok = false;
+    // Resume: skip if a valid image already exists
+    if (fs.existsSync(dest) && fs.statSync(dest).size > 6000) { console.log(`OK  ${d.slug}  (cached)`); results.push({ slug: d.slug, ok: true }); continue; }
 
     // 1) search by the destination's search term
     let candidates = searchImages(d.search);
@@ -97,7 +114,7 @@ function looksLikeImage(dest) {
       if (pg && pg.imageinfo) {
         const ii = pg.imageinfo[0];
         if (/^image\/(jpeg|jpg|png)$/.test(ii.mime || '')) {
-          candidates.unshift({ title: pg.title, url: ii.thumburl || ii.url });
+          candidates.unshift({ title: pg.title, url: cleanUrl(ii.thumburl || ii.url) });
         }
       }
     }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" data-tags="login, auth, pokhara">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log in · Pokhara Tú</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand" style="margin-bottom:18px"><span class="logo">🌊</span> Pokhara <span style="color:var(--teal-500)">Tú</span></div>
+      <h1>Welcome back</h1>
+      <p class="sub">Log in to rate spots and keep your travel log.</p>
+      <div class="form-error" id="err"></div>
+      <form id="form">
+        <div class="field">
+          <label>Email or username</label>
+          <input name="identifier" type="text" required autocomplete="username" placeholder="you@email.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input name="password" type="password" required autocomplete="current-password" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" id="submitBtn">Log in</button>
+      </form>
+      <div class="auth-switch">New here? <a href="/register.html">Create an account</a></div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    PT.mountNav();
+    if (PT.getToken()) location.href = '/profile.html';
+    const next = new URLSearchParams(location.search).get('next') || '/profile.html';
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('err'); err.style.display = 'none';
+      const btn = document.getElementById('submitBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Logging in…';
+      try {
+        const r = await PT.api('/auth/login', { method: 'POST', body: Object.fromEntries(new FormData(e.target)) });
+        PT.setToken(r.token); PT.setStoredUser(r.user);
+        PT.toast('Logged in ✨');
+        location.href = next;
+      } catch (e2) {
+        err.textContent = e2.message; err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Log in';
+      }
+    });
+  </script>
+</body>
+</html>

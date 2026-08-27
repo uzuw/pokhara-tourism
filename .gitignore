@@ -5,4 +5,12 @@ server/data/tourism.db-wal
 server/data/tourism.db-shm
 *.log
 .DS_Store
-public/assets/images/*.jpg
+
+# Next.js build output
+frontend/.next/
+frontend/out/
+
+# Legacy vanilla-HTML prototype (replaced by Next.js frontend)
+frontend-legacy/
+
+# Keep public/assets/images/*.jpg tracked (real destination photos)

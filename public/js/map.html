@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-tags="map, openstreetmap, routing, pokhara">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Full Map · Pokhara Tú</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .map-layout { display:grid; grid-template-columns: 320px 1fr; gap:20px; align-items:start; }
+    .map-side { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow-sm); max-height:76vh; overflow:auto; }
+    .map-side h3 { margin:0 0 10px; color:var(--lake-800); font-size:1.05rem; }
+    .dest-item { display:flex; gap:10px; align-items:center; padding:9px 10px; border-radius:12px; cursor:pointer; transition:background .15s; }
+    .dest-item:hover { background:var(--bg-soft); }
+    .dest-item.active { background: var(--bg-soft); outline:1.5px solid var(--teal-500); }
+    .dest-thumb { width:48px; height:48px; border-radius:10px; object-fit:cover; background:linear-gradient(120deg,var(--lake-700),var(--teal-500)); flex:none; }
+    .dest-item .nm { font-weight:600; font-size:.9rem; color:var(--lake-800); }
+    .dest-item .ct { font-size:.74rem; color:var(--muted); }
+    .route-box { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+    .route-box select { padding:9px 12px; border-radius:10px; border:1.5px solid var(--line); font:inherit; background:#fff; flex:1; min-width:140px; }
+    .route-info { background:var(--bg-soft); border-radius:12px; padding:12px 14px; font-size:.88rem; color:var(--ink-soft); margin-top:12px; display:none; }
+    #fullMap { height:76vh; border-radius:var(--radius); }
+    .leaflet-routing-container { display:none; }
+    @media (max-width: 880px){ .map-layout{ grid-template-columns:1fr; } #fullMap{ height:60vh; } }
+  </style>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <section class="section" style="padding-top:40px">
+    <div class="container">
+      <div class="section-head" style="text-align:left;margin:0 0 20px;max-width:none">
+        <span class="eyebrow">🗺️ OpenStreetMap</span>
+        <h2 style="margin:8px 0 4px">The whole valley, on one map</h2>
+        <p>Pick two spots to draw a real route between them. Click any destination to centre the map.</p>
+      </div>
+
+      <div class="route-box">
+        <select id="fromSel"><option value="">From…</option></select>
+        <span style="color:var(--muted)">→</span>
+        <select id="toSel"><option value="">To…</option></select>
+        <button class="btn btn-primary" id="routeBtn">Draw route</button>
+        <button class="btn btn-outline" id="clearRoute">Clear</button>
+      </div>
+      <div class="route-info" id="routeInfo"></div>
+
+      <div class="map-layout" style="margin-top:14px">
+        <div class="map-side">
+          <h3>📍 All destinations</h3>
+          <div id="sideList"></div>
+        </div>
+        <div>
+          <div id="fullMap"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer"><div class="container footer-bottom">© 2026 Pokhara Tú · Map data © OpenStreetMap contributors</div></footer>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <script src="/js/app.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <script>
+    PT.mountNav('map');
+
+    let map, markers = {}, destinations = [], routing = null, selectedId = null;
+
+    async function init() {
+      const r = await PT.api('/destinations');
+      destinations = r.destinations;
+
+      map = L.map('fullMap', { scrollWheelZoom: true }).setView([28.21, 83.96], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      const side = document.getElementById('sideList');
+      const fromSel = document.getElementById('fromSel');
+      const toSel = document.getElementById('toSel');
+
+      destinations.forEach(d => {
+        const m = L.marker([d.lat, d.lng], { icon: PT.makeIcon(false) })
+          .addTo(map)
+          .bindPopup(`<b>${PT.escapeHtml(d.name)}</b><br>${PT.escapeHtml(d.category)}<br><a href="/destination.html?slug=${d.slug}">View →</a>`);
+        markers[d.id] = m;
+
+        const item = document.createElement('div');
+        item.className = 'dest-item'; item.dataset.id = d.id;
+        item.innerHTML = `<img class="dest-thumb" src="${d.image}" onerror="this.style.background='linear-gradient(120deg,#0e3a56,#14b8a6)'"><div><div class="nm">${PT.escapeHtml(d.name)}</div><div class="ct">${PT.escapeHtml(d.category)}</div></div>`;
+        item.onclick = () => focusDest(d);
+        side.appendChild(item);
+
+        const o1 = new Option(d.name, d.id); const o2 = new Option(d.name, d.id);
+        fromSel.add(o1); toSel.add(o2);
+      });
+
+      // preselect destination if ?slug= given
+      const slug = new URLSearchParams(location.search).get('slug');
+      if (slug) { const d = destinations.find(x => x.slug === slug); if (d) focusDest(d); }
+    }
+
+    function focusDest(d) {
+      map.flyTo([d.lat, d.lng], 15, { duration: .8 });
+      markers[d.id].openPopup();
+      document.querySelectorAll('.dest-item').forEach(el => el.classList.toggle('active', +el.dataset.id === d.id));
+      selectedId = d.id;
+    }
+
+    function clearRoute() {
+      if (routing) { map.removeControl(routing); routing = null; }
+      document.getElementById('routeInfo').style.display = 'none';
+      document.getElementById('fromSel').value = '';
+      document.getElementById('toSel').value = '';
+    }
+
+    async function drawRoute() {
+      const fromId = +document.getElementById('fromSel').value;
+      const toId = +document.getElementById('toSel').value;
+      if (!fromId || !toId) { PT.toast('Pick a From and To spot'); return; }
+      if (fromId === toId) { PT.toast('Pick two different spots'); return; }
+      const a = destinations.find(d => d.id === fromId);
+      const b = destinations.find(d => d.id === toId);
+      if (routing) map.removeControl(routing);
+
+      routing = L.Routing.control({
+        waypoints: [L.latLng(a.lat, a.lng), L.latLng(b.lat, b.lng)],
+        router: L.Routing.osrmRouter({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+        lineOptions: { styles: [{ color: '#ff7a45', weight: 5, opacity: .85 }] },
+        show: false, addWaypoints: false, fitSelectedRoutes: true,
+        createMarker: () => null,
+      }).addTo(map);
+
+      routing.on('routesfound', e => {
+        const r = e.routes[0]; const km = (r.summary.totalDistance / 1000).toFixed(1);
+        const min = Math.round(r.summary.totalTime / 60);
+        const info = document.getElementById('routeInfo');
+        info.style.display = 'block';
+        info.innerHTML = `🚶 <b>${PT.escapeHtml(a.name)} → ${PT.escapeHtml(b.name)}</b><br>Distance <b>${km} km</b> · about <b>${min} min</b> by road.`;
+      });
+      routing.on('routingerror', () => PT.toast('Routing service unavailable — try again later'));
+    }
+
+    document.getElementById('routeBtn').onclick = drawRoute;
+    document.getElementById('clearRoute').onclick = clearRoute;
+
+    init().catch(() => PT.toast('Could not load map data'));
+  </script>
+</body>
+</html>

@@ -31,10 +31,10 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISO
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 app.use(express.static(PUBLIC_DIR));
 
-// SPA-ish fallback: any unknown non-api route serves index.html
-app.get(/^\/(?!api\/).*/, (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
-});
+// NOTE: this Express server is the JSON API + static image host.
+// The website UI is a separate Next.js app (see /frontend). It talks to
+// /api/* (and serves images from /assets/*) — either same-origin behind a
+// reverse proxy, or cross-origin (CORS is enabled) using NEXT_PUBLIC_API_URL.
 
 // Seed destinations on boot
 seedIfEmpty();

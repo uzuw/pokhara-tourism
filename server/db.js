@@ -80,8 +80,17 @@ function seedIfEmpty() {
     `INSERT INTO destinations (slug,name,category,lat,lng,short_desc,description,best_time,entry_fee,tags,image,featured)
      VALUES (@slug,@name,@category,@lat,@lng,@short_desc,@description,@best_time,@entry_fee,@tags,@image,@featured)`
   );
-  const tx = db.transaction((rows) => rows.forEach((r) => ins.run(r)));
-  tx(list);
+  db.exec('BEGIN');
+  try {
+    list.forEach((r) => {
+      const { search, ...row } = r; // 'search' is metadata for the image fetcher, not a column
+      ins.run(row);
+    });
+    db.exec('COMMIT');
+  } catch (e) {
+    db.exec('ROLLBACK');
+    throw e;
+  }
   console.log(`[seed] inserted ${list.length} destinations`);
 }
 
