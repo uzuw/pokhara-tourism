@@ -48,7 +48,7 @@ export default function HomePage() {
 
   return (
     <>
-      <header className="hero" style={{ marginTop: '-70px', paddingTop: '70px' }}>
+      <header className="hero">
         <div className="flags-banner"><PrayerFlags count={13} /></div>
         <div className="hero-bg" />
         <img className="hero-photo" src="/assets/images/sarangkot.jpg" alt="Sarangkot sunrise" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
