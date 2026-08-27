@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { motion, AnimatePresence } from 'framer-motion';
+import Logo from '@/components/decor/Logo';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -22,7 +23,6 @@ export default function Navbar() {
     : pathname.startsWith('/map') ? 'map'
     : pathname.startsWith('/profile') ? 'profile' : '';
 
-  // lock scroll + close on Escape while the drawer is open
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
@@ -38,10 +38,9 @@ export default function Navbar() {
     <nav className="nav">
       <div className="container nav-inner">
         <Link href="/" className="brand" onClick={() => setOpen(false)}>
-          <span className="logo">🌊</span> Pokhara <span className="accent">Tú</span>
+          <Logo /> Hamro <span className="accent">Pokhara</span>
         </Link>
 
-        {/* desktop: inline links + auth */}
         <div className="nav-links">
           {links.map((l) => (
             <Link key={l.href} href={l.href} className={activeKey === l.key ? 'active' : ''}>{l.label}</Link>
@@ -61,7 +60,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* mobile: profile avatar (if signed in) + hamburger */}
         <div className="nav-mobile-actions">
           {ready && user && (
             <button className="avatar-sm nav-avatar-btn" title={user.username} aria-label="Open account menu" onClick={() => setOpen(true)}>
@@ -74,36 +72,21 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* mobile slide-in drawer (from the right) */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            key="bd"
-            className="nav-drawer-backdrop"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setOpen(false)}
-          />
+          <motion.div key="bd" className="nav-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
         )}
         {open && (
-          <motion.aside
-            key="dr"
-            className="nav-drawer"
-            initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 320, damping: 34 }}
-          >
+          <motion.aside key="dr" className="nav-drawer" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 320, damping: 34 }}>
             <div className="drawer-head">
-              <span className="brand" style={{ fontSize: '1.05rem' }}>
-                <span className="logo">🌊</span> Pokhara <span className="accent">Tú</span>
-              </span>
+              <span className="brand"><Logo size={28} /> Hamro <span className="accent">Pokhara</span></span>
               <button className="drawer-close" aria-label="Close menu" onClick={() => setOpen(false)}>✕</button>
             </div>
-
             <nav className="nav-drawer-links">
               {links.map((l) => (
                 <Link key={l.href} href={l.href} className={activeKey === l.key ? 'active' : ''} onClick={() => setOpen(false)}>{l.label}</Link>
               ))}
             </nav>
-
             <div className="nav-drawer-account">
               {!ready ? null : user ? (
                 <>

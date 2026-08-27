@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, toast, getToken, getStoredUser } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import MapLayers from '@/components/MapLayers';
 
 function makeIcon(L) {
   return L.divIcon({
@@ -50,6 +51,7 @@ export default function DestinationDetail() {
 
   useEffect(() => {
     if (!dest || !mapEl.current || mapRef.current) return;
+    if (mapEl.current._leaflet_id) return; // already initialized (strict-mode double invoke)
     if (!LRef.current) {
       import('leaflet').then((L) => {
         LRef.current = L;
@@ -132,6 +134,7 @@ export default function DestinationDetail() {
             <div className="tag-row" style={{ margin: '14px 0 24px' }}>{tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>
 
             <h3 style={{ color: 'var(--lake-800)' }}>📍 How to get there</h3>
+            <div className="map-controls"><MapLayers mapRef={mapRef} LRef={LRef} /></div>
             <div id="detailMap" ref={mapEl}></div>
             <p className="muted" style={{ fontSize: '.85rem', marginTop: 8 }}>Open the full map to draw a route from any other spot: <Link href={`/map?slug=${dest.slug}`} style={{ color: 'var(--lake-600)', fontWeight: 600 }}>Plan your route →</Link></p>
 

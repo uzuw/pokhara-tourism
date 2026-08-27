@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { toast } from '@/lib/auth';
+import MapLayers from '@/components/MapLayers';
 
 function makeIcon(L, active) {
   return L.divIcon({
@@ -50,6 +51,7 @@ function MapInner() {
     if (!mapRef.current && mapEl.current) {
       loadLeaflet().then((L) => {
         LRef.current = L;
+        if (mapEl.current._leaflet_id) return; // already initialized (strict-mode double invoke)
         const m = L.map(mapEl.current).setView([28.21, 83.96], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(m);
         mapRef.current = m;
@@ -162,6 +164,10 @@ function MapInner() {
           <span className="eyebrow">🗺️ OpenStreetMap</span>
           <h2 style={{ margin: '8px 0 4px' }}>The whole valley, on one map</h2>
           <p>Pick two spots to draw a real route between them — or use your live location. Click any destination to centre the map.</p>
+        </div>
+
+        <div className="map-controls">
+          <MapLayers mapRef={mapRef} LRef={LRef} />
         </div>
 
         <div className="route-box">

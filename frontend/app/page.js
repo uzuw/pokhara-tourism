@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Reveal, Stagger, StaggerItem, HoverLift } from '@/components/Motion';
+import PrayerFlags from '@/components/decor/PrayerFlags';
+import Diya from '@/components/decor/Diya';
 
 function DestinationCard({ d }) {
   const img = d.image || '/assets/images/phewa-lake.jpg';
@@ -46,13 +48,14 @@ export default function HomePage() {
 
   return (
     <>
-      <header className="hero">
+      <header className="hero" style={{ marginTop: '-70px', paddingTop: '70px' }}>
+        <div className="flags-banner"><PrayerFlags count={13} /></div>
         <div className="hero-bg" />
         <img className="hero-photo" src="/assets/images/sarangkot.jpg" alt="Sarangkot sunrise" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
         <div className="container hero-content">
           <Reveal><span className="eyebrow">🏔️ Gandaki · Nepal</span></Reveal>
           <Reveal delay={0.08}>
-            <h1>Find your way to <span className="hl">Pokhara</span></h1>
+            <h1>Find your way to <span className="hl">Hamro Pokhara</span></h1>
           </Reveal>
           <Reveal delay={0.16}>
             <p className="lead">Lakes that mirror the Annapurna range, sunrise viewpoints, hidden caves and sacred temples — with live OpenStreetMap navigation to every spot.</p>
@@ -130,6 +133,7 @@ export default function HomePage() {
       <section className="section">
         <div className="container">
           <Reveal><div className="cta-band">
+            <Diya size={34} className="diya-inline" />
             <h2>Ready to wander?</h2>
             <p>Create a free account, save your favourite spots, and rate the places that moved you.</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
