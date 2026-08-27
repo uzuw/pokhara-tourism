@@ -26,7 +26,7 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0; font-family: var(--font-body); color: var(--ink);
   background: var(--bg); line-height: 1.65; -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.06; letter-spacing: -.025em; font-weight: 700; }
 .serif { font-family: var(--font-serif); }
@@ -265,8 +265,8 @@ button { font-family: inherit; cursor: pointer; }
 .field input, .field textarea, .field select,
 .route-box select, .map-layer select { background: rgba(255, 255, 255, .7); backdrop-filter: blur(8px); border: 1.5px solid rgba(14, 116, 144, .22); transition: border .15s, box-shadow .15s, background .15s; }
 
-/* keep z-index of content above particles */
-.nav, .section, .auth-wrap, .footer, .hero, .cta-band, .nav-drawer, .nav-drawer-backdrop { position: relative; z-index: 2; }
+/* keep z-index of content above particles (explicitly NOT nav, which stays sticky) */
+.section, .auth-wrap, .footer, .hero, .cta-band, .nav-drawer, .nav-drawer-backdrop { position: relative; z-index: 2; }
 
 /* clean focus states (no default browser outline on our styled controls) */
 a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: none; }

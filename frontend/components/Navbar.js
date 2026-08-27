@@ -35,43 +35,47 @@ export default function Navbar() {
   function doLogout() { setOpen(false); logout(); router.push('/'); }
 
   return (
-    <nav className="nav">
-      <div className="container nav-inner">
-        <Link href="/" className="brand" onClick={() => setOpen(false)}>
-          <Logo /> Hamro <span className="accent">Pokhara</span>
-        </Link>
+    <>
+      <nav className="nav">
+        <div className="container nav-inner">
+          <Link href="/" className="brand" onClick={() => setOpen(false)}>
+            <Logo /> Hamro <span className="accent">Pokhara</span>
+          </Link>
 
-        <div className="nav-links">
-          {links.map((l) => (
-            <Link key={l.href} href={l.href} className={activeKey === l.key ? 'active' : ''}>{l.label}</Link>
-          ))}
-        </div>
-        <div className="nav-right">
-          {!ready ? null : user ? (
-            <>
-              <Link href="/profile" className="avatar-sm" title={user.username} style={{ textAlign: 'center' }}>{user.username?.[0]?.toUpperCase()}</Link>
-              <button className="btn btn-outline" onClick={doLogout}>Log out</button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="btn btn-outline">Log in</Link>
-              <Link href="/register" className="btn btn-primary">Sign up</Link>
-            </>
-          )}
-        </div>
+          <div className="nav-links">
+            {links.map((l) => (
+              <Link key={l.href} href={l.href} className={activeKey === l.key ? 'active' : ''}>{l.label}</Link>
+            ))}
+          </div>
+          <div className="nav-right">
+            {!ready ? null : user ? (
+              <>
+                <Link href="/profile" className="avatar-sm" title={user.username} style={{ textAlign: 'center' }}>{user.username?.[0]?.toUpperCase()}</Link>
+                <button className="btn btn-outline" onClick={doLogout}>Log out</button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="btn btn-outline">Log in</Link>
+                <Link href="/register" className="btn btn-primary">Sign up</Link>
+              </>
+            )}
+          </div>
 
-        <div className="nav-mobile-actions">
-          {ready && user && (
-            <button className="avatar-sm nav-avatar-btn" title={user.username} aria-label="Open account menu" onClick={() => setOpen(true)}>
-              {user.username?.[0]?.toUpperCase()}
+          <div className="nav-mobile-actions">
+            {ready && user && (
+              <button className="avatar-sm nav-avatar-btn" title={user.username} aria-label="Open account menu" onClick={() => setOpen(true)}>
+                {user.username?.[0]?.toUpperCase()}
+              </button>
+            )}
+            <button className="hamburger" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+              {open ? '✕' : '☰'}
             </button>
-          )}
-          <button className="hamburger" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-            {open ? '✕' : '☰'}
-          </button>
+          </div>
         </div>
-      </div>
+      </nav>
 
+      {/* drawer + backdrop live OUTSIDE <nav> so backdrop-filter on .nav
+          doesn't trap their position:fixed containing block */}
       <AnimatePresence>
         {open && (
           <motion.div key="bd" className="nav-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
@@ -110,6 +114,6 @@ export default function Navbar() {
           </motion.aside>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 }
