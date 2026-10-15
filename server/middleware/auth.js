@@ -1,16 +1,33 @@
-// JWT auth middleware
+// JWT auth middleware.
 const { verifyToken } = require('../auth');
 
+// RFC 7235: the auth scheme is case-insensitive ("bearer" === "Bearer").
+function bearerToken(req) {
+  const header = String(req.headers.authorization || '').trim();
+  const m = /^Bearer\s+(.+)$/i.exec(header);
+  return m ? m[1].trim() : null;
+}
+
 function requireAuth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token) return res.status(401).json({ error: 'Authentication required' });
+  const token = bearerToken(req);
+  if (!token) return res.status(401).json({ error: 'authentication required' });
   try {
     req.user = verifyToken(token);
-    next();
+    return next();
   } catch (e) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    return res.status(401).json({ error: 'invalid or expired token' });
   }
 }
 
-module.exports = { requireAuth };
+/** Populates req.user when a valid token is present; never rejects. */
+function optionalAuth(req, res, next) {
+  const token = bearerToken(req);
+  if (token) {
+    try {
+      req.user = verifyToken(token);
+    } catch (e) { /* anonymous */ }
+  }
+  return next();
+}
+
+module.exports = { requireAuth, optionalAuth, bearerToken };

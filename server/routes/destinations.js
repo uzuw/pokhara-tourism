@@ -1,46 +1,62 @@
+// Destination catalogue.
+//
+// Listing used to run 1 query for the rows plus 3 queries per row (avg, comment
+// count, my rating). It is now a single query — see DEST_SELECT in db.js.
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db');
 
-// Attach aggregate rating + comment count + my rating to a destination row
-function withStats(row, userId) {
-  if (!row) return row;
-  const stats = db.prepare(`
-    SELECT COALESCE(AVG(score),0) AS avg_rating, COUNT(*) AS rating_count
-    FROM ratings WHERE destination_id = ?
-  `).get(row.id);
-  const commentCount = db.prepare('SELECT COUNT(*) AS c FROM comments WHERE destination_id=?').get(row.id).c;
-  let myRating = null;
-  if (userId) {
-    const r = db.prepare('SELECT score FROM ratings WHERE user_id=? AND destination_id=?').get(userId, row.id);
-    myRating = r ? r.score : null;
-  }
-  return { ...row, avg_rating: Number(stats.avg_rating.toFixed(2)), rating_count: stats.rating_count, comment_count: commentCount, my_rating: myRating };
+const { q, DEST_SELECT, mapDestination, myRatingFor } = require('../db');
+const { optionalAuth } = require('../middleware/auth');
+const { RULES, isStr } = require('../validate');
+const config = require('../config');
+
+const LIST_HARD_CAP = 500; // never stream an unbounded table in one response
+
+function publicCatalogue(res) {
+  res.setHeader('Cache-Control', `public, max-age=${config.catalogueMaxAge}, stale-while-revalidate=${config.catalogueMaxAge * 2}`);
 }
 
-// GET /api/destinations  (list, optional ?category=&q=&featured=)
+// GET /api/destinations  (optional ?category=&q=&featured=)
 router.get('/', (req, res) => {
-  const { category, q, featured } = req.query;
-  let sql = 'SELECT * FROM destinations WHERE 1=1';
+  const { category, q: search, featured } = req.query;
+
+  if (search !== undefined && (!isStr(search) || search.length > RULES.QUERY_MAX)) {
+    return res.status(400).json({ error: `q must be a string of at most ${RULES.QUERY_MAX} characters` });
+  }
+  if (category !== undefined && (!isStr(category) || category.length > RULES.CATEGORY_MAX)) {
+    return res.status(400).json({ error: 'invalid category filter' });
+  }
+
+  let sql = `${DEST_SELECT} WHERE 1=1`;
   const params = [];
-  if (category) { sql += ' AND category=?'; params.push(category); }
-  if (featured === '1') { sql += ' AND featured=1'; }
-  if (q) { sql += ' AND (name LIKE ? OR short_desc LIKE ? OR tags LIKE ?)'; const like = `%${q}%`; params.push(like, like, like); }
-  sql += ' ORDER BY featured DESC, name ASC';
-  const rows = db.prepare(sql).all(...params).map((r) => withStats(r, null));
+  if (category) { sql += ' AND d.category = ?'; params.push(category); }
+  if (featured === '1') sql += ' AND d.featured = 1';
+  if (search) {
+    sql += ' AND (d.name LIKE ? OR d.short_desc LIKE ? OR d.tags LIKE ?)';
+    const like = `%${search}%`;
+    params.push(like, like, like);
+  }
+  sql += ' ORDER BY d.featured DESC, d.name ASC LIMIT ?';
+  params.push(LIST_HARD_CAP);
+
+  const rows = q(sql).all(...params).map((r) => mapDestination(r));
+  publicCatalogue(res); // public + user-independent → brief browser/CDN caching
   res.json({ destinations: rows, count: rows.length });
 });
 
 // GET /api/destinations/:slug
-router.get('/:slug', (req, res) => {
-  const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  let userId = null;
-  if (token) { try { userId = require('../auth').verifyToken(token).sub; } catch (e) {} }
-
-  const row = db.prepare('SELECT * FROM destinations WHERE slug=?').get(req.params.slug);
+router.get('/:slug', optionalAuth, (req, res) => {
+  const slug = req.params.slug;
+  if (!isStr(slug) || slug.length > RULES.SLUG_MAX) {
+    return res.status(404).json({ error: 'destination not found' });
+  }
+  const row = q(`${DEST_SELECT} WHERE d.slug = ?`).get(slug);
   if (!row) return res.status(404).json({ error: 'destination not found' });
-  res.json({ destination: withStats(row, userId) });
+
+  const destination = mapDestination(row, myRatingFor(req.user && req.user.sub, row.id));
+  if (req.user) res.setHeader('Cache-Control', 'private, no-store');
+  else publicCatalogue(res);
+  res.json({ destination });
 });
 
 module.exports = router;
