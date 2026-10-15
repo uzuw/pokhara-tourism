@@ -1,0 +1,62 @@
+# Hamro Pokhara — single-host deployment.
+#
+#   cp .env.example .env && npm run setup:env   # generate JWT_SECRET
+#   docker compose up -d --build
+#
+# Only the proxy publishes a port. The API and web containers stay on the
+# internal network, so the API can never be reached without going through nginx.
+services:
+  api:
+    build: .
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      TRUST_PROXY: loopback
+      TOURISM_DB_FILE: /data/tourism.db
+      # Fail the deploy loudly instead of booting with a guessable secret:
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env (npm run setup:env)}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      # nginx already gzips; drop this line to compress in Node instead.
+      COMPRESSION_DISABLED: ${COMPRESSION_DISABLED:-1}
+      CATALOGUE_MAX_AGE: ${CATALOGUE_MAX_AGE:-60}
+      LOG_REQUESTS: ${LOG_REQUESTS:-1}
+    volumes:
+      - api-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # empty => browser calls the same origin (proxy routes /api to the api service)
+        NEXT_PUBLIC_API_URL: "${PUBLIC_API_URL:-}"
+        SITE_URL: "${SITE_URL:-http://localhost}"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      SITE_URL: ${SITE_URL:-http://localhost}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+      - web
+    restart: unless-stopped
+
+volumes:
+  api-data:

@@ -1,0 +1,32 @@
+# Bare-metal (systemd) deployment — Next.js web app.
+#
+#   npm ci && npm --prefix frontend ci && npm --prefix frontend run build   (once)
+#   sudo cp deploy/hamro-pokhara-web.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now hamro-pokhara-web
+[Unit]
+Description=Hamro Pokhara web (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=hamro
+Group=hamro
+WorkingDirectory=/srv/hamro-pokhara/frontend
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=SITE_URL=https://example.com
+ExecStart=/usr/bin/npm run start
+
+KillSignal=SIGTERM
+TimeoutStopSec=15
+Restart=always
+RestartSec=3
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/hamro-pokhara/frontend/.next
+
+[Install]
+WantedBy=multi-user.target

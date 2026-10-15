@@ -1,0 +1,40 @@
+# Bare-metal (systemd) deployment — API. Docker alternative: see docker-compose.yml
+#
+#   sudo cp deploy/hamro-pokhara-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now hamro-pokhara-api
+[Unit]
+Description=Hamro Pokhara API (Express + SQLite)
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hamro
+Group=hamro
+WorkingDirectory=/srv/hamro-pokhara
+EnvironmentFile=/srv/hamro-pokhara/.env
+Environment=NODE_ENV=production
+Environment=TOURISM_DB_FILE=/var/lib/hamro-pokhara/tourism.db
+Environment=TRUST_PROXY=loopback
+Environment=PORT=4000
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/node server/index.js
+
+# Graceful shutdown: SIGTERM drains in-flight requests (server/index.js handles it)
+KillSignal=SIGTERM
+TimeoutStopSec=15
+Restart=always
+RestartSec=3
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/hamro-pokhara
+
+[Install]
+WantedBy=multi-user.target
