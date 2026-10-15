@@ -1,16 +1,28 @@
 node_modules/
+
+# Local environment (never commit secrets) — see .env.example
 .env
-server/data/tourism.db
-server/data/tourism.db-wal
-server/data/tourism.db-shm
+.env.local
+frontend/.env.local
+
 *.log
 .DS_Store
+
+# SQLite runtime files: the schema lives in code, the data does not live in git
+server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
 
 # Next.js build output
 frontend/.next/
 frontend/out/
 
-# Legacy vanilla-HTML prototype (replaced by Next.js frontend)
+# Local test / benchmark artifacts
+reports/
+server/data/test-*.db*
+server/data/loadtest-*.db*
+
+# Legacy vanilla-HTML prototype (replaced by the Next.js frontend)
 frontend-legacy/
 
 # Keep public/assets/images/*.jpg tracked (real destination photos)

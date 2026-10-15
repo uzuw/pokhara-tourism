@@ -1,5 +1,6 @@
 // End-to-end API smoke test (no shell pipe to interpreter).
-const BASE = 'http://localhost:4000';
+// Point it elsewhere with SMOKE_BASE=https://staging.example.com
+const BASE = process.env.SMOKE_BASE || 'http://localhost:4000';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function j(method, path, body, token) {
