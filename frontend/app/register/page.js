@@ -35,7 +35,7 @@ export default function RegisterPage() {
         <form onSubmit={submit}>
           <div className="field"><label>Username</label><input value={form.username} onChange={(e) => set('username', e.target.value)} required minLength={3} placeholder="traveler_01" /></div>
           <div className="field"><label>Email</label><input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} required placeholder="you@email.com" /></div>
-          <div className="field"><label>Password</label><input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} required minLength={6} placeholder="at least 6 characters" /><div className="hint">Use 6+ characters. We hash it — we never see it.</div></div>
+          <div className="field"><label>Password</label><input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="at least 8 characters" /><div className="hint">8+ characters, not all digits. We hash it with scrypt — we never see it.</div></div>
           <button className="btn btn-primary btn-block" disabled={busy}>{busy ? <span className="spinner" /> : 'Create account'}</button>
         </form>
         <div className="auth-switch">Already have an account? <Link href="/login">Log in</Link></div>

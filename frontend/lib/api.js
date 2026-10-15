@@ -21,6 +21,7 @@ export function setStoredUser(u) {
 
 export async function api(path, opts = {}) {
   const headers = Object.assign({}, opts.headers || {});
+  const method = (opts.method || 'GET').toUpperCase();
   if (!(opts.body instanceof FormData) && opts.body) {
     headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(opts.body);
@@ -28,12 +29,22 @@ export async function api(path, opts = {}) {
   const token = getToken();
   if (token) headers['Authorization'] = 'Bearer ' + token;
 
-  const res = await fetch(BASE + path, { ...opts, headers, cache: 'no-store' });
+  // Public GETs may use the browser cache (the API sends Cache-Control for the
+  // catalogue); anything authenticated or mutating must never be cached.
+  const cache = method === 'GET' && !token ? 'default' : 'no-store';
+
+  const res = await fetch(BASE + path, { ...opts, headers, cache });
   let data = null;
   try { data = await res.json(); } catch { data = {}; }
   if (!res.ok) {
     const err = new Error((data && data.error) || ('Request failed (' + res.status + ')'));
-    err.status = res.status; err.data = data; throw err;
+    err.status = res.status;
+    err.data = data;
+    if (res.status === 429) {
+      err.retryAfter = Number(res.headers.get('retry-after')) || 60;
+      err.message = `${err.message} (try again in ~${err.retryAfter}s)`;
+    }
+    throw err;
   }
   return data;
 }
