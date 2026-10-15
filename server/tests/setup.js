@@ -4,8 +4,11 @@ const path = require('path');
 const fs = require('fs');
 
 process.env.NODE_ENV = 'test';
-// Unique test DB file per run (lives in server/data/, gitignored pattern).
-process.env.TOURISM_TEST_DB = `test-${process.pid}.db`;
+// Unique test DB file per test FILE (Jest gives each file its own module
+// registry, so a per-run random suffix keeps concurrent/sequential files from
+// sharing — and clobbering — one DB file).
+process.env.TOURISM_TEST_DB =
+  process.env.TOURISM_TEST_DB || `test-${process.pid}-${Math.random().toString(36).slice(2, 8)}.db`;
 
 // Load the app AFTER the env vars are set so db.js picks the test DB.
 const app = require('../index');

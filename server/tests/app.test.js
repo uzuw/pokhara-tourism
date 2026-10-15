@@ -1,3 +1,9 @@
+// Rate limits are exercised in security-ratelimit.test.js; the functional
+// suites raise them so a long test run never trips the abuse guards.
+process.env.AUTH_RATE_MAX = '1000';
+process.env.REGISTER_RATE_MAX = '1000';
+process.env.WRITE_RATE_MAX = '1000';
+
 const request = require('supertest');
 const { app, db, seedDestinations, cleanup } = require('./setup');
 
@@ -29,7 +35,7 @@ describe('Auth', () => {
     const res = await request(app).post('/api/auth/register')
       .send({ username: uniq(), email: 'x@ex.com', password: '123' });
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/6 characters/);
+    expect(res.body.error).toMatch(/at least 8 characters/);
   });
 
   test('rejects registration with invalid email', async () => {
