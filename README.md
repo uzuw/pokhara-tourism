@@ -96,6 +96,8 @@ node scripts/smoke_test.js   # register → rate → comment → profile (needs 
 | `npm run audit` | **black-box security audit** against a running instance (`--url`, `--origin`) |
 | `bash scripts/audit_local.sh` | boots a production-mode instance and audits it |
 | `bash scripts/deploy_check.sh` | production boot, headers, auth gates, SIGTERM grace |
+| `bash scripts/e2e_check.sh` | full stack: API + built Next app + the same-origin `/api` + `/assets` proxy + a real user journey |
+| `bash scripts/nginx_check.sh` | loads `deploy/nginx.conf` in nginx with stub upstreams and checks every route |
 | `npm run loadtest -- --label new` | autocannon load test on generated fixtures |
 | `npm run loadtest -- --flood` | reads-while-logins-hash responsiveness probe |
 | `npm run setup:env` | generate `.env` + `frontend/.env.local` with strong secrets |
@@ -124,6 +126,26 @@ sudo systemctl daemon-reload && sudo systemctl enable --now hamro-pokhara-api ha
 
 Put `deploy/nginx.conf` (or any reverse proxy) in front, terminate TLS there, and
 serve everything from **one origin** so the browser never needs CORS.
+
+### One VPS, from zero
+
+```bash
+# on the box (2 vCPU / 2 GB is plenty)
+git clone <repo> && cd tourism
+npm run setup:env                        # strong JWT_SECRET, mode 0600
+docker compose up -d --build             # nginx :80 -> web + api
+docker compose ps                        # api + web must show (healthy)
+
+# TLS: pick ONE
+sudo certbot --nginx -d your.domain      # A) keep nginx
+#   or B) swap the proxy for Caddy, which renews certificates by itself:
+#   see deploy/Caddyfile.example (one file, no certbot cron)
+
+curl -fsS https://your.domain/api/health # {"ok":true,...}
+```
+
+Point the domain's `A` record at the box and open 80/443 first. `CORS_ORIGINS`
+stays **empty** — same origin needs no CORS at all.
 
 ### Configuration
 

@@ -1,0 +1,53 @@
+# Hamro Pokhara — Caddy reverse proxy (the low-effort alternative to nginx.conf).
+#
+#   Why Caddy: it obtains and renews TLS certificates by itself. Point your
+#   domain's A/AAAA record at the host, open 80 + 443, run Caddy, and you have
+#   HTTPS with no certbot cron and no renewal monitoring.
+#
+#   Docker:   docker run -d --name caddy --network <stack_net> \
+#               -p 80:80 -p 443:443 -v $PWD/deploy/Caddyfile.example:/etc/caddy/Caddyfile:ro \
+#               -v caddy_data:/data caddy:2-alpine
+#   Bare:     sudo cp deploy/Caddyfile.example /etc/caddy/Caddyfile && sudo systemctl reload caddy
+#
+# The upstream names (api:4000, web:3000) match docker-compose.yml. Running Caddy
+# outside Docker? Replace them with 127.0.0.1:4000 / 127.0.0.1:3000.
+
+# 1. Replace with your real domain — Caddy needs it to request a certificate.
+# 2. Keep everything on ONE origin (same host for /, /api and /assets) so the
+#    browser never needs CORS and the app's relative /api paths just work.
+pokhara.example.com {
+	encode gzip zstd
+
+	# Security headers for the HTML app; the API sets its own via helmet.
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	request_body {
+		max_size 1MB
+	}
+
+	# API: never cache authenticated or mutating responses.
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+
+	# Destination photos: long-lived and immutable (filenames never change).
+	handle /assets/* {
+		header Cache-Control "public, max-age=604800, immutable"
+		reverse_proxy api:4000
+	}
+
+	# Everything else is the Next.js app.
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
+}

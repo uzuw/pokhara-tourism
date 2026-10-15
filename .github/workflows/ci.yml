@@ -22,7 +22,7 @@ jobs:
         run: bash scripts/deploy_check.sh
 
   web:
-    name: Web build
+    name: Web build + full-stack e2e
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,5 +31,18 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
       - run: npm ci --prefix frontend
       - run: npm --prefix frontend run build
+      # Boots API (production mode) + the built Next app and drives the real
+      # same-origin paths the browser uses (/api, /assets) plus a user journey.
+      - name: End-to-end stack check
+        run: bash scripts/e2e_check.sh
+
+  proxy:
+    name: Reverse proxy config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Starts throwaway upstreams and loads deploy/nginx.conf for real.
+      - run: bash scripts/nginx_check.sh
