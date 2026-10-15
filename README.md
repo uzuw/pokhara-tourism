@@ -1,5 +1,7 @@
 # 🌊 Hamro Pokhara — हाम्रो पोखरा
 
+[![CI](https://github.com/uzuw/pokhara-tourism/actions/workflows/ci.yml/badge.svg)](https://github.com/uzuw/pokhara-tourism/actions/workflows/ci.yml)
+
 A full-stack tourism guide for **Pokhara, Nepal**. Browse curated destinations,
 see them on **OpenStreetMap** with real routing ("how to get there"), and sign up
 to rate spots and leave reviews.
@@ -179,6 +181,17 @@ same properties over HTTP against any running instance.
 
 Full findings with severities and the measured before/after performance numbers:
 **[docs/AUDIT.md](docs/AUDIT.md)**.
+
+## Credits
+
+Destination photos come from **Wikimedia Commons** — see **[CREDITS.md](CREDITS.md)**
+for the source file, author and licence of each one (most are CC BY-SA and
+require attribution). Map data © OpenStreetMap contributors (ODbL); routing by OSRM.
+
+The photos are the one part of the catalogue still needing work: three of the
+fourteen currently show the wrong place (the fetch script validated file type but
+never content). Details and the fix plan are in
+[docs/AUDIT.md §3](docs/AUDIT.md#content-qa-the-destination-photos).
 
 ## Notes
 

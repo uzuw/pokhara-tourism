@@ -1,10 +1,16 @@
-// Search Commons for an image of a subject, download the first good result.
+// Search Commons for an image of a subject, download the first usable result.
+//   node scripts/fetch_one.js <slug> "<search term>"   # repair a single photo
 const { execSync } = require('child_process');
+const path = require('path');
 const fs = require('fs');
 const UA = 'PokharaTourismApp/1.0';
 const slug = process.argv[2];
 const term = process.argv[3];
-const dest = `/home/uzu/code/vibecoding/tourism/public/assets/images/${slug}.jpg`;
+if (!slug || !term) {
+  console.error('usage: node scripts/fetch_one.js <slug> "<search term>"');
+  process.exit(2);
+}
+const dest = path.join(__dirname, '..', 'public', 'assets', 'images', `${slug}.jpg`);
 
 const apiUrl = 'https://commons.wikimedia.org/w/api.php?format=json&action=query&generator=search&gsrsearch=' +
   encodeURIComponent(term) + '&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url%7Cmime&iiurlwidth=1280';
